@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./src:/app/src
+      - ./vector_dbs:/app/vector_dbs
+      - ./documents:/app/documents
+    environment:
+      - LM_STUDIO_URL=http://host.docker.internal:1234/v1
+      - TOKENIZERS_PARALLELISM=false
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+      - PYTHONPATH=/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8501/_stcore/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # For development (hot relod via volume mount of src) use:
+    # command: streamlit run src/app.py --server.port=8501 --server.address=0.0.0.0 --server.runOnSave=true
